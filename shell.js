@@ -7,7 +7,7 @@ async function main(){
         message : __dirname + ">"
     })
     commLine = await command(input);
-    func[commLine.comm](commLine.args);
+    func[commLine.comm](commLine.args, commLine.bg);
     
     
     
@@ -28,8 +28,8 @@ function command(input){
 }
 
 let func = {
-    open : function(app){
-        exec(String(app), (error, stdout, stderr) => {
+    open : function(app, bg){
+        exec(String(app+bg) , (error, stdout, stderr) => {
             if(error){console.log("error : " + error.message);}
             if(stderr){
                 console.log("stderr : " + stderr);
@@ -39,8 +39,8 @@ let func = {
         });
         main();
     },
-    ls : function(){
-        exec('ps ax', (error, stdout, stderr) => {
+    ls : function(bg){
+        exec('ps ax' + String(bg), (error, stdout, stderr) => {
             if(error){console.log("error : " + error.message);}
             if(stderr){
                 console.log("stderr : " + stderr);
