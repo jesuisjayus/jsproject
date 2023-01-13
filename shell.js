@@ -7,7 +7,7 @@ async function main(){
         message : __dirname + ">"
     })
     commLine = await command(input);
-    func[commLine.comm]();
+    func[commLine.comm](commLine.args);
     
     
     
@@ -28,8 +28,15 @@ function command(input){
 }
 
 let func = {
-    open : function(){
-        console.log("you type open");
+    open : function(app){
+        exec(String(app), (error, stdout, stderr) => {
+            if(error){console.log("error : " + error.message);}
+            if(stderr){
+                console.log("stderr : " + stderr);
+                return;
+            }
+            console.log("stdout : " + stdout);
+        });
         main();
     },
     ls : function(){
