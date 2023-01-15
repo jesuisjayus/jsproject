@@ -14,7 +14,15 @@ async function main(){
         commLine.comm = 'err';
     }
     func[commLine.comm](commLine.args, commLine.bg);
+    
 }
+
+//exit shell with ctrl+p
+process.stdin.on('data', data => {
+    if(data.toString('hex') == '13'){
+        exit();
+    }
+})
 
 //input parser
 function command(input){
