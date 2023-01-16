@@ -19,7 +19,7 @@ async function main(){
 
 //exit shell with ctrl+p
 process.stdin.on('data', data => {
-    if(data.toString('hex') == '13'){
+    if(data.toString('hex') == ''){
         exit();
     }
 })
@@ -158,7 +158,7 @@ let func = {
                 console.log('stderr: ' + stderr);
             }
             if(error){
-                console.log('exec error: ' + error);G
+                console.log('exec error: ' + error);
                 main();
             }
         });
