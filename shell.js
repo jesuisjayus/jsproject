@@ -19,7 +19,7 @@ async function main(){
 
 //exit shell with ctrl+p
 process.stdin.on('data', data => {
-    if(data.toString('hex') == ''){
+    if(data.toString('hex') == '10'){
         exit();
     }
 })
