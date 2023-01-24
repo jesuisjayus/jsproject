@@ -1,5 +1,8 @@
+const { ChildProcess } = require('child_process');
 const inquirer = require('inquirer')
 const exec = require('child_process').exec
+const spawn = require('child_process').spawn
+
 
 async function main(){
     let {input} = await inquirer.prompt({
@@ -13,16 +16,22 @@ async function main(){
     if(!(commLine.comm in func)){
         commLine.comm = 'err';
     }
-    func[commLine.comm](commLine.args, commLine.bg);
+    func[commLine.comm](commLine.args, commLine.bg)
+    .then(main())
+    .catch(function (error){
+        console.log('\x1b[31m' + error + '\x1b[0m');
+        main();
+    });
     
 }
 
 //exit shell with ctrl+p
 process.stdin.on('data', data => {
-    if(data.toString('hex') == '10'){
+    if (data.toString('hex') == '10'){
         exit();
     }
 })
+
 
 //input parser
 function command(input){
@@ -42,36 +51,26 @@ function command(input){
 let func = {
     //run a process in the foreground
     open : function(app, bg){
-        exec(String(app+bg) , function(error, stdout, stderr){
-            if(stdout){
-                console.log('stdout: ' + stdout);
-            }
-            if(stderr){
-                console.log('stderr: ' + stderr);
-            }
-            if(error){
-                console.log('exec error: ' + error);
-                main();
-            }
+        return new Promise(function(resolve, reject){
+            exec(String(app, bg), function(error, stdout, stdin){
+                if(error){
+                    return reject (error);
+                }
+            })
         });
-        main();
-        
     },
     //list running processes 
     ls : function(bg){
-        exec('ps ax' + String(bg) , function(error, stdout, stderr){
-            if(stdout){
-                console.log('stdout: ' + stdout);
-            }
-            if(stderr){
-                console.log('stderr: ' + stderr);
-            }
-            if(error){
-                console.log('exec error: ' + error);
-                main();
-            }
+        return new Promise(function(resolve, reject){
+            exec('ps ax' + String(bg), function(error, stdout, stderr){
+                if(stdout){
+                    console.log('stdout: ' + stdout);
+                }
+                if(error){
+                    return reject (error); 
+                } 
+            })
         });
-        main();
     },
     //kill,pause, resume a process
     bing : function(arg, bg){
@@ -79,7 +78,7 @@ let func = {
         let b = true;
         switch (String(arg[0])){
             case "-k":
-                f = 'kill -s kill ';
+                f = 'kill -15 ';
                 break;
             case "-p":
                 f = 'kill -s stop ';
@@ -92,7 +91,28 @@ let func = {
                 break;
         }
         if(b){
-            exec(f + + String(arg[1]) + String(bg) , function(error, stdout, stderr){
+            return new Promise(function(resolve, reject){
+                exec(f + String(arg[1]) + String(bg), function(error, stdout, stderr){
+                    if(stdout){
+                        console.log('stdout: ' + stdout);
+                    }
+                    if(stderr){
+                        console.log('stderr: ' + stderr);
+                    }
+                    if(error){
+                        return reject (error); 
+                    } 
+                })
+            });
+        } else {
+            func.err();
+     } 
+        
+    },
+    //detach a process from the terminal 
+    keep : function(app, bg){
+        return new Promise(function(resolve, reject){
+            exec('nohup ' + String(app, bg), function(error, stdout, stderr){
                 if(stdout){
                     console.log('stdout: ' + stdout);
                 }
@@ -100,78 +120,79 @@ let func = {
                     console.log('stderr: ' + stderr);
                 }
                 if(error){
-                    console.log('exec error: ' + error);
-                    main();
-                }
-            });
-            main(); 
-        } else {
-            func.err();
-        } 
-        
-    },
-    //detach a process from the terminal 
-    keep : function(app, bg){
-        exec('nohup ' + String(app+bg) , function(error, stdout, stderr){
-            if(stdout){
-                console.log('stdout: ' + stdout);
-            }
-            if(stderr){
-                console.log('stderr: ' + stderr);
-            }
-            if(error){
-                console.log('exec error: ' + error);G
-                main();
-            }
+                    return reject (error); 
+                } 
+            })
         });
-        main();
     },
     //display the current directory
     dir : function(){
-        console.log('\x1b[33m' + __dirname +   '\x1b[0m');
-        main();
+        return new Promise(function(resolve, reject){
+            console.log('\x1b[33m' + __dirname + 'x1b[0m');
+        
+        })
     },
     //create a new file in the current directory
     new : function(args){
-        exec('touch ' + String(args) , function(error, stdout, stderr){
-            if(stdout){
-                console.log('stdout: ' + stdout);
-            }
-            if(stderr){
-                console.log('stderr: ' + stderr);
-            }
-            if(error){
-                console.log('exec error: ' + error);G
-                main();
-            }
+        return new Promise(function(resolve, reject){
+            exec('touch ' + String(args), function(error, stdout, stderr){
+                if(stdout){
+                    console.log('stdout: ' + stdout);
+                }
+                if(stderr){
+                    console.log('stderr: ' + stderr);
+                }
+                if(error){
+                    return reject(error);
+                } 
+            })
         });
-        main();
     },
     /*move a file from the current directory
     to the specified directory*/
     move : function(args){
-        exec('mv ' + String(args[0] + " " +  args[1]) , function(error, stdout, stderr){
-            if(stdout){
-                console.log('stdout: ' + stdout);
-            }
-            if(stderr){
-                console.log('stderr: ' + stderr);
-            }
-            if(error){
-                console.log('exec error: ' + error);
-                main();
-            }
+        return new Promise(function(resolve, reject){
+            exec('mv ' + String(args[0] + " " +  args[1]), function(error, stdout, stderr){
+                if(stdout){
+                    console.log('stdout: ' + stdout);
+                }
+                if(stderr){
+                    console.log('stderr: ' + stderr);
+                }
+                if(error){
+                    return reject (error);
+                } 
+            })
         });
-        main();
+    },
+    //remove a file in the current directory
+    remove : function(args){
+        return new Promise(function(resolve, reject){
+            exec('rm ' + String(args[0]), function(error, stdout, stderr){
+                if(stdout){
+                    console.log('stdout: ' + stdout);
+                }
+                if(stderr){
+                    console.log('stderr: ' + stderr);
+                }
+                if(error){
+                    return reject (error);
+                } 
+            })
+        });
     },
     //if the user don't write anything
     null : function(){
-        main();
+        return new Promise(function(resolve, reject){
+            
+        })
     },
     //unknown command handler
     err : function(){
-        console.log('Error : Command not found');
-        main();
+        return new Promise(function(resolve, reject){
+            error = 'command not found';
+            return reject(error);
+        })
     }
 }
 
