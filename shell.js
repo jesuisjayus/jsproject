@@ -20,7 +20,6 @@ async function main(){
     .then(main())
     .catch(function (error){
         console.log('\x1b[31m' + error + '\x1b[0m');
-        main();
     });
     
 }
@@ -101,7 +100,7 @@ let func = {
                     }
                     if(error){
                         return reject (error); 
-                    } 
+                    }
                 })
             });
         } else {
@@ -180,6 +179,21 @@ let func = {
                 } 
             })
         });
+    },
+    help : function(){
+        return new Promise(function(resolve, reject){
+            console.log('\x1b[36m',
+            " open <app_name>",'\x1b[35m', ":  execute a program\n", '\x1b[36m',
+            "ls",'\x1b[35m', ":  list all running processes\n", '\x1b[36m',
+            "bing <-k|-p|-c> <pid>",'\x1b[35m', ":  kill|pause|resume a process\n", '\x1b[36m',
+            "keep <app_name>",'\x1b[35m', ":  execute a detached program\n", '\x1b[36m',
+            "dir",'\x1b[35m', ":  display the current directory\n", '\x1b[36m',
+            "new <file_name>",'\x1b[35m', ":  create a new file in the current directory\n", '\x1b[36m',
+            "move <file_name> <destination_path>",'\x1b[35m', ":  move a file\n", '\x1b[36m',
+            "remove <file_name>",'\x1b[35m', ":  delete a file in the current directory",
+            '\x1b[0m')
+        })
+
     },
     //if the user don't write anything
     null : function(){
